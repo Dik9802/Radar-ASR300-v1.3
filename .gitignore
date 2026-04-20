@@ -1,0 +1,23 @@
+# Runtime outputs
+*.log
+*.err.log
+*.db
+
+# Python caches
+**/__pycache__/
+*.pyc
+
+# Image caches (generados en runtime)
+plate_pic/
+scene_pic/
+
+# Test outputs
+tests/last_display_output.gif
+tests/sample_*.jpg
+
+# Claude Code local config
+.claude/
+
+# IDE
+.vscode/
+.idea/

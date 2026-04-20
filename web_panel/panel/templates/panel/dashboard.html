@@ -1,0 +1,331 @@
+{% extends "panel/base.html" %}
+
+{% block page_title %}Configuracion del Display{% endblock %}
+
+{% block extra_css %}
+<style>
+  .plate-option-card { transition: box-shadow 0.2s, border-color 0.2s; cursor: pointer; border: 2px solid transparent; }
+  .plate-option-card:hover { box-shadow: 0 0 12px rgba(0,123,255,0.25); }
+  .plate-option-card.selected { border-color: #28a745 !important; box-shadow: 0 0 12px rgba(40,167,69,0.35); }
+  .plate-option-card.selected .fa-3x { color: #28a745 !important; }
+  .mode-btn.active { box-shadow: 0 0 0 3px rgba(0,123,255,0.5); }
+  .color-option { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; display: inline-block; margin: 0 4px; transition: border-color 0.2s, transform 0.1s; }
+  .color-option:hover { transform: scale(1.15); }
+  .color-option.selected { border-color: #333; box-shadow: 0 0 6px rgba(0,0,0,0.4); }
+  .color-RED { background-color: #dc3545; }
+  .color-GREEN { background-color: #28a745; }
+  .color-YELLOW { background-color: #ffc107; }
+  .color-BLUE { background-color: #007bff; }
+  .color-PURPLE { background-color: #6f42c1; }
+  .color-CYAN { background-color: #17a2b8; }
+  .color-WHITE { background-color: #f8f9fa; border-color: #dee2e6; }
+  .color-WHITE.selected { border-color: #333; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ==================== SECCION: MODO DEL DISPLAY ==================== -->
+<div class="card card-outline card-primary">
+  <div class="card-header">
+    <h3 class="card-title"><i class="fas fa-tv"></i> Estado del Display</h3>
+  </div>
+  <div class="card-body">
+    <div class="row">
+
+      <!-- Selector de Modo -->
+      <div class="col-md-4">
+        <label class="font-weight-bold">Modo de operacion</label>
+        <div class="btn-group btn-group-lg d-flex" role="group">
+          <button type="button" class="btn mode-btn {% if display_state.mode == 'radar' %}btn-primary active{% else %}btn-outline-primary{% endif %}"
+                  data-mode="radar">
+            <i class="fas fa-tachometer-alt"></i> Radar
+          </button>
+          <button type="button" class="btn mode-btn {% if display_state.mode == 'text' %}btn-primary active{% else %}btn-outline-primary{% endif %}"
+                  data-mode="text">
+            <i class="fas fa-font"></i> Texto
+          </button>
+        </div>
+        <small class="text-muted mt-1 d-block">
+          <strong>Radar:</strong> muestra velocidades y placas. <strong>Texto:</strong> muestra mensaje fijo.
+        </small>
+      </div>
+
+      <!-- Mensaje de Texto -->
+      <div class="col-md-8" id="text-config-section">
+        <div class="row">
+          <div class="col-md-12 mb-2">
+            <label class="font-weight-bold">Mensaje de texto</label>
+            <div class="input-group">
+              <input type="text" id="text_message" class="form-control form-control-lg"
+                     value="{{ display_state.text_message }}" placeholder="Escribe el mensaje...">
+              <div class="input-group-append">
+                <button id="btn-send-text" class="btn btn-success btn-lg" type="button">
+                  <i class="fas fa-paper-plane"></i> Enviar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <!-- Color -->
+          <div class="col-md-6">
+            <label class="font-weight-bold">Color</label>
+            <div id="color-picker">
+              {% for c in valid_colors %}
+              <span class="color-option color-{{ c }} {% if display_state.text_color == c %}selected{% endif %}"
+                    data-color="{{ c }}" title="{{ c }}"></span>
+              {% endfor %}
+            </div>
+            <input type="hidden" id="text_color" value="{{ display_state.text_color }}">
+          </div>
+          <!-- Font Size -->
+          <div class="col-md-6">
+            <label class="font-weight-bold">Tamano de fuente</label>
+            <select id="text_font_size" class="form-control">
+              {% for fs in valid_font_sizes %}
+              <option value="{{ fs }}" {% if display_state.text_font_size == fs %}selected{% endif %}>{{ fs }}px</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECCION: VISUALIZACION DE PLACAS ==================== -->
+<div class="card card-outline card-success">
+  <div class="card-header">
+    <h3 class="card-title"><i class="fas fa-car"></i> Visualizacion de Placas</h3>
+    <span class="float-right text-sm text-muted">Solo una opcion puede estar activa</span>
+  </div>
+  <div class="card-body">
+    <div class="row">
+
+      <!-- Recorte de Placa -->
+      <div class="col-md-4">
+        <div class="card plate-option-card" data-key="show_plate_pic" data-color="primary">
+          <div class="card-body text-center py-4">
+            <div class="mb-3">
+              <i class="fas fa-crop-alt fa-3x plate-icon text-muted"></i>
+            </div>
+            <h5 class="font-weight-bold">Recorte de Placa</h5>
+            <p class="text-muted text-sm">Foto recortada de la placa en el display LED</p>
+            <div class="custom-control custom-radio d-flex justify-content-center mt-3">
+              <input type="radio" class="custom-control-input plate-radio"
+                     id="radio_show_plate_pic" name="plate_display" value="show_plate_pic"
+                     {% if config.show_plate_pic %}checked{% endif %}>
+              <label class="custom-control-label" for="radio_show_plate_pic">Seleccionar</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Escena Completa -->
+      <div class="col-md-4">
+        <div class="card plate-option-card" data-key="show_plate_scene" data-color="info">
+          <div class="card-body text-center py-4">
+            <div class="mb-3">
+              <i class="fas fa-image fa-3x plate-icon text-muted"></i>
+            </div>
+            <h5 class="font-weight-bold">Escena Completa</h5>
+            <p class="text-muted text-sm">Imagen completa de la escena en el display LED</p>
+            <div class="custom-control custom-radio d-flex justify-content-center mt-3">
+              <input type="radio" class="custom-control-input plate-radio"
+                     id="radio_show_plate_scene" name="plate_display" value="show_plate_scene"
+                     {% if config.show_plate_scene %}checked{% endif %}>
+              <label class="custom-control-label" for="radio_show_plate_scene">Seleccionar</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Texto de Placa -->
+      <div class="col-md-4">
+        <div class="card plate-option-card" data-key="show_plate_text" data-color="warning">
+          <div class="card-body text-center py-4">
+            <div class="mb-3">
+              <i class="fas fa-font fa-3x plate-icon text-muted"></i>
+            </div>
+            <h5 class="font-weight-bold">Texto de Placa</h5>
+            <p class="text-muted text-sm">Texto de la placa (ej: PLACA ABC123)</p>
+            <div class="custom-control custom-radio d-flex justify-content-center mt-3">
+              <input type="radio" class="custom-control-input plate-radio"
+                     id="radio_show_plate_text" name="plate_display" value="show_plate_text"
+                     {% if config.show_plate_text %}checked{% endif %}>
+              <label class="custom-control-label" for="radio_show_plate_text">Seleccionar</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Alert de feedback -->
+<div id="feedback-alert" class="alert alert-dismissible fade" role="alert" style="display:none; position:fixed; top:60px; right:20px; z-index:9999; min-width:300px;">
+  <span id="feedback-msg"></span>
+  <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+</div>
+
+<!-- Info card -->
+<div class="card card-outline card-secondary">
+  <div class="card-header py-2">
+    <h3 class="card-title"><i class="fas fa-info-circle"></i> Notas</h3>
+  </div>
+  <div class="card-body text-sm">
+    <ul class="mb-0">
+      <li>Solo <strong>una opcion</strong> de visualizacion de placa puede estar activa a la vez.</li>
+      <li>En modo <strong>Texto</strong>, el display ignora velocidades y placas del radar.</li>
+      <li>Todos los cambios se aplican <strong>inmediatamente</strong> y se persisten en <code>config.ini</code>.</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(function() {
+
+  // ========== SELECCION DE PLACA (mutuamente excluyente) ==========
+  // Inicializar estado visual
+  updatePlateCardStyles();
+
+  // Click en la card completa también selecciona
+  $('.plate-option-card').on('click', function() {
+    var radio = $(this).find('.plate-radio');
+    radio.prop('checked', true).trigger('change');
+  });
+
+  $('.plate-radio').on('change', function() {
+    var selected = $(this).val();
+
+    $.ajax({
+      url: '/api/plate-config/',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({ selected: selected }),
+      success: function(resp) {
+        updatePlateCardStyles();
+        var labels = {
+          'show_plate_pic': 'Recorte de Placa',
+          'show_plate_scene': 'Escena Completa',
+          'show_plate_text': 'Texto de Placa'
+        };
+        showFeedback('success', '<i class="fas fa-check"></i> Activado: <strong>' + labels[selected] + '</strong>');
+      },
+      error: function(xhr) {
+        var msg = 'Error actualizando configuracion';
+        try { msg = JSON.parse(xhr.responseText).error || msg; } catch(e) {}
+        showFeedback('danger', msg);
+      }
+    });
+  });
+
+  function updatePlateCardStyles() {
+    // Limpiar todos: quitar selected, bordes y colores de icono
+    $('.plate-option-card').removeClass('selected border-primary border-info border-warning');
+    $('.plate-option-card .plate-icon').removeClass('text-primary text-info text-warning').addClass('text-muted');
+
+    // Aplicar al seleccionado
+    var checked = $('.plate-radio:checked');
+    if (checked.length) {
+      var card = checked.closest('.plate-option-card');
+      var color = card.data('color'); // primary, info, warning
+      card.addClass('selected border-' + color);
+      card.find('.plate-icon').removeClass('text-muted').addClass('text-' + color);
+    }
+  }
+
+  // ========== SELECTOR DE MODO ==========
+  $('.mode-btn').on('click', function() {
+    var $btn = $(this);
+    var mode = $btn.data('mode');
+
+    $.ajax({
+      url: '/api/display-mode/',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({ mode: mode }),
+      success: function(resp) {
+        $('.mode-btn').removeClass('btn-primary active').addClass('btn-outline-primary');
+        $btn.removeClass('btn-outline-primary').addClass('btn-primary active');
+        showFeedback('success', '<i class="fas fa-check"></i> Modo cambiado a <strong>' + mode + '</strong>.');
+      },
+      error: function(xhr) {
+        var msg = 'Error cambiando modo';
+        try { msg = JSON.parse(xhr.responseText).error || msg; } catch(e) {}
+        showFeedback('danger', msg);
+      }
+    });
+  });
+
+  // ========== COLOR PICKER ==========
+  $('.color-option').on('click', function() {
+    $('.color-option').removeClass('selected');
+    $(this).addClass('selected');
+    $('#text_color').val($(this).data('color'));
+  });
+
+  // ========== ENVIAR TEXTO ==========
+  $('#btn-send-text').on('click', sendTextMessage);
+  $('#text_message').on('keypress', function(e) {
+    if (e.which === 13) sendTextMessage();
+  });
+
+  function sendTextMessage() {
+    var text = $('#text_message').val().trim();
+    if (!text) {
+      showFeedback('warning', 'Escribe un mensaje primero.');
+      return;
+    }
+
+    var payload = {
+      text: text,
+      color: $('#text_color').val(),
+      font_size: parseInt($('#text_font_size').val())
+    };
+
+    $('#btn-send-text').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Enviando...');
+
+    $.ajax({
+      url: '/api/display-text/',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(payload),
+      success: function(resp) {
+        // Activar visualmente el modo texto
+        $('.mode-btn').removeClass('btn-primary active').addClass('btn-outline-primary');
+        $('.mode-btn[data-mode="text"]').removeClass('btn-outline-primary').addClass('btn-primary active');
+        showFeedback('success', '<i class="fas fa-check"></i> Mensaje enviado al display.');
+      },
+      error: function(xhr) {
+        var msg = 'Error enviando mensaje';
+        try {
+          var r = JSON.parse(xhr.responseText);
+          msg = r.error || r.warning || msg;
+        } catch(e) {}
+        showFeedback('danger', msg);
+      },
+      complete: function() {
+        $('#btn-send-text').prop('disabled', false).html('<i class="fas fa-paper-plane"></i> Enviar');
+      }
+    });
+  }
+
+  // ========== FEEDBACK ==========
+  function showFeedback(type, msg) {
+    var $alert = $('#feedback-alert');
+    $alert.removeClass('alert-success alert-danger alert-warning alert-info show')
+          .addClass('alert-' + type + ' show')
+          .show();
+    $('#feedback-msg').html(msg);
+    setTimeout(function() { $alert.removeClass('show').hide(); }, 3500);
+  }
+
+});
+</script>
+{% endblock %}
