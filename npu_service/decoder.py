@@ -22,7 +22,7 @@ from shared.plate_pipeline import (
     save_plate_image_b64,
     make_plate_event,
 )
-from shared.shm_bus import EventBus, CHANNEL_NPU
+from shared.zmq_bus import EventBus, CHANNEL_NPU
 
 _bus: Optional[EventBus] = None
 

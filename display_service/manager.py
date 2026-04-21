@@ -748,11 +748,17 @@ def _consumer_loop() -> None:
 
             plate = item.get("plate")
             ts_ms = item.get("ts_ms", _now_ms())
+            source = item.get("source", "lpr")  # default LPR para compat
 
-            if SHOW_PLATE_SPEED:
+            # El gate SHOW_PLATE_SPEED solo aplica a placas LPR (anti-fraude
+            # con placas físicas). Las placas NPU vienen de la cámara NPU
+            # (plate OCR propio) y se muestran siempre — sin exigir velocidad.
+            if source == "npu":
+                print(f"[{_ts_str()}] [DISPLAY_MANAGER] ⚙ Placa NPU: sin chequeo de velocidad")
+            elif SHOW_PLATE_SPEED:
                 last_spd_ts = _get_last_speed_ts_ms_safe()
                 if last_spd_ts is None or (_now_ms() - last_spd_ts > 10_000):
-                    print(f"[{_ts_str()}] [DISPLAY_MANAGER] ❌ PLACA RECHAZADA '{plate}': "
+                    print(f"[{_ts_str()}] [DISPLAY_MANAGER] ❌ PLACA RECHAZADA '{plate}' (source={source}): "
                           f"SHOW_PLATE_SPEED=true y sin velocidad reciente (last={_fmt_ts(last_spd_ts)})")
                     time.sleep(POLL_SLEEP)
                     continue
@@ -862,7 +868,7 @@ def _consumer_loop() -> None:
 # colas internas (_velocidades_q / _placas_q) con el mismo formato que usaba
 # el código antiguo. Así el _consumer_loop no cambia.
 
-from shared.shm_bus import EventBus, CHANNEL_RADAR, CHANNEL_LPR, CHANNEL_NPU
+from shared.zmq_bus import EventBus, CHANNEL_RADAR, CHANNEL_LPR, CHANNEL_NPU
 
 # Rate-limit de placas (cross-fuente). Antes vivía en plate_pipeline; ahora
 # aquí cubre LPR + NPU con un único filtro — si llega la misma placa por
@@ -951,6 +957,7 @@ def _plate_consumer_thread(channel: str, source_label: str) -> None:
         payload = {
             "plate": plate,
             "ts_ms": int(evt.get("ts_ms") or _now_ms() * 1),
+            "source": source_label,  # 'lpr' o 'npu' — usado para decidir si exigir velocidad
         }
         if evt.get("plate_pic_path"):
             payload["plate_pic_path"] = evt["plate_pic_path"]

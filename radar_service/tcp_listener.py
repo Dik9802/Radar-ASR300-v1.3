@@ -256,7 +256,7 @@ def _publish_speed_safe(speed: float, ts_ms: int) -> None:
     global _bus
     if _bus is None:
         # Primer uso: adjuntar/crear el canal
-        from shared.shm_bus import EventBus, CHANNEL_RADAR
+        from shared.zmq_bus import EventBus, CHANNEL_RADAR
         _bus = EventBus(CHANNEL_RADAR, role="producer")
     try:
         print(f"[{_ts_str()}] [RADAR_TCP] VELOCIDAD RECIBIDA: {speed} km/h -> bus", flush=True)

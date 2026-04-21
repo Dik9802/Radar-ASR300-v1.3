@@ -12,7 +12,7 @@ from shared.plate_pipeline import (
     make_plate_event,
     save_plate_image_b64,
 )
-from shared.shm_bus import EventBus, CHANNEL_LPR
+from shared.zmq_bus import EventBus, CHANNEL_LPR
 
 logger = logging.getLogger("lpr_decoder")
 
