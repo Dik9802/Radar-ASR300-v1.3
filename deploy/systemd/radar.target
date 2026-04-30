@@ -1,0 +1,7 @@
+[Unit]
+Description=Radar ASR300P v1.3 - Stack completo
+Wants=radar-radar.service radar-lpr.service radar-npu.service radar-display.service radar-webpanel.service
+After=network-online.target
+
+[Install]
+WantedBy=multi-user.target

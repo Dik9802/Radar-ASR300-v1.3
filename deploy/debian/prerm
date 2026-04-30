@@ -1,0 +1,20 @@
+#!/bin/bash
+set -e
+
+echo "[radar-asr300p] Deteniendo servicios..."
+systemctl stop radar.target 2>/dev/null || true
+systemctl stop radar-radar.service \
+               radar-lpr.service \
+               radar-npu.service \
+               radar-display.service \
+               radar-webpanel.service 2>/dev/null || true
+
+echo "[radar-asr300p] Deshabilitando servicios..."
+systemctl disable radar-radar.service \
+                  radar-lpr.service \
+                  radar-npu.service \
+                  radar-display.service \
+                  radar-webpanel.service \
+                  radar.target 2>/dev/null || true
+
+exit 0

@@ -1,0 +1,52 @@
+#!/bin/bash
+set -e
+
+INSTALL_DIR=/opt/radar
+VENV=$INSTALL_DIR/venv
+
+echo "[radar-asr300p] Creando directorios de imagenes..."
+mkdir -p $INSTALL_DIR/plate_pic $INSTALL_DIR/scene_pic
+chmod 755 $INSTALL_DIR/plate_pic $INSTALL_DIR/scene_pic
+
+echo "[radar-asr300p] Creando entorno virtual Python..."
+if [ ! -d "$VENV" ]; then
+    python3 -m venv $VENV
+fi
+
+echo "[radar-asr300p] Instalando dependencias Python (puede tardar)..."
+$VENV/bin/pip install --upgrade pip wheel >/dev/null
+$VENV/bin/pip install --quiet pyzmq pillow flask requests django
+
+echo "[radar-asr300p] Recargando systemd..."
+systemctl daemon-reload
+
+echo "[radar-asr300p] Habilitando servicios..."
+systemctl enable radar-radar.service \
+                 radar-lpr.service \
+                 radar-npu.service \
+                 radar-display.service \
+                 radar-webpanel.service \
+                 radar.target
+
+echo "[radar-asr300p] Arrancando radar.target..."
+systemctl restart radar.target
+sleep 3
+
+echo ""
+echo "============================================"
+echo "  radar-asr300p v1.3.0 instalado"
+echo "============================================"
+echo ""
+echo "  Estado:    systemctl status radar.target"
+echo "  Logs:      journalctl -u 'radar-*' -f"
+echo "  Reiniciar: systemctl restart radar.target"
+echo ""
+echo "  Endpoints:"
+echo "    Web Panel:        http://<ip>:8082"
+echo "    Display API:      http://<ip>:8081"
+echo "    LPR webhook:      http://<ip>:8899"
+echo "    NPU /npu:         http://<ip>:8898"
+echo "    Radar TCP:        <ip>:2222"
+echo ""
+
+exit 0

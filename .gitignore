@@ -15,6 +15,10 @@ scene_pic/
 tests/last_display_output.gif
 tests/sample_*.jpg
 
+# Deploy artifacts (generados al construir el .deb)
+deploy/deb-build/
+deploy/*.deb
+
 # Claude Code local config
 .claude/
 

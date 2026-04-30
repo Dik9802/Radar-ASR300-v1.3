@@ -1,0 +1,23 @@
+[Unit]
+Description=Radar ASR300P - web_panel Django (HTTP 8082)
+PartOf=radar.target
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/radar/web_panel
+ExecStart=/opt/radar/venv/bin/python manage.py runserver 0.0.0.0:8082 --noreload --insecure
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONIOENCODING=utf-8
+Environment=PYTHONUTF8=1
+Environment=DJANGO_SETTINGS_MODULE=web_panel.settings
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=radar-webpanel
+
+[Install]
+WantedBy=radar.target

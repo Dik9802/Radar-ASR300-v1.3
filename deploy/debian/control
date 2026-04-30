@@ -1,0 +1,18 @@
+Package: radar-asr300p
+Version: 1.3.0
+Section: misc
+Priority: optional
+Architecture: arm64
+Depends: python3 (>= 3.9), python3-venv, libzmq5
+Maintainer: Radar Vialab <soporte@via-lab.online>
+Description: Radar ASR300P v1.3 - Sistema de fiscalizacion de trafico
+ Microservicios Python (radar + LPR + NPU + display + web panel)
+ con bus de eventos PyZMQ PUB/SUB. Despliegue para Raspberry Pi 5
+ (arm64). Incluye 5 unidades systemd agrupadas bajo radar.target.
+ .
+ Servicios y puertos:
+  - radar_service:    TCP 2222   (entrada radar LDTR20)
+  - lpr_service:      HTTP 8899  (webhook camara LPR Hikvision)
+  - npu_service:      HTTP 8898  (endpoint /npu camara NPU)
+  - display_service:  HTTP 8081  (API monitor display LED)
+  - web_panel:        HTTP 8082  (editor de config.ini)

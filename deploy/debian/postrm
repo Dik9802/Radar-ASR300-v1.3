@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e
+
+systemctl daemon-reload 2>/dev/null || true
+
+# Solo en purge: borra venv e imagenes capturadas
+if [ "$1" = "purge" ]; then
+    echo "[radar-asr300p] Purgando venv e imagenes..."
+    rm -rf /opt/radar/venv
+    rm -rf /opt/radar/plate_pic /opt/radar/scene_pic
+    rmdir /opt/radar 2>/dev/null || true
+fi
+
+exit 0

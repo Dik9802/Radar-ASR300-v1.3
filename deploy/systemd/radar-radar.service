@@ -1,0 +1,22 @@
+[Unit]
+Description=Radar ASR300P - radar_service (TCP 2222 -> ZMQ 5555)
+PartOf=radar.target
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/radar
+ExecStart=/opt/radar/venv/bin/python -m radar_service.main
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONIOENCODING=utf-8
+Environment=PYTHONUTF8=1
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=radar-radar
+
+[Install]
+WantedBy=radar.target
